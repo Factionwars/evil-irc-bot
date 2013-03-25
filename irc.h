@@ -1,5 +1,9 @@
 #ifndef _IRC_HEADER
 #define _IRC_HEADER
+/********************
+**	Evilzone IRC bot
+**	Factionwars 2013
+*********************/
 
 #define PORT "6668"
 #define MAXDATASIZE 100
@@ -14,9 +18,6 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
-#include <string>
-#include <cstring>
-
 
 //IRC PROTOCOL
 //End line
@@ -24,7 +25,7 @@ char cEndl[2] = {'\n', '\r'};
 //Length of end line
 #define LNDL 2
 
-class EvilIrc {
+class Evilirc {
 private: 
 	char buf[MAXDATASIZE];	
 	char s[INET6_ADDRSTRLEN];	
@@ -40,10 +41,10 @@ private:
 	void pong(char cPong[]);
 	void send(std::string strUserMessage);
 	
-	
+	bool connected;
 public:
-	EvilIrc();
-	~EvilIrc();
+	Evilirc();
+	~Evilirc();
 	bool connect();
 	void disconnect();
 	void authenticate();
@@ -52,7 +53,13 @@ public:
 	void join();
 	void say(std::string& strMessage);
 	void idle();
+
 	std::string& operator= (std::string& strString);
+
+	void kick(std::string& strUsername);
+	void kick(std::string& strUsername, std::string& strReason);
+
+	
 };
 
 

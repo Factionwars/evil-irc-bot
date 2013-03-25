@@ -1,40 +1,46 @@
-/*
-**Evilzone IRC bot
-**Factionwars 2013
-*/
+/********************
+**	Evilzone IRC bot
+**	Factionwars 2013
+*********************/
 
 #include "irc.h"
 
-EvilIrc::EvilIrc() {
+Evilirc::Evilirc() : connected(false) 
+{
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family 	= AF_UNSPEC;
 	hints.ai_socktype 	= SOCK_STREAM;
 }
 
-EvilIrc::~EvilIrc() {
+Evilirc::~Evilirc() 
+{
 	disconnect();
 }
 
 
-void *EvilIrc::get_in_addr(struct sockaddr *sa)
+void *Evilirc::get_in_addr(struct sockaddr *sa)
 {
-	if (sa->sa_family == AF_INET) {
+	if (sa->sa_family == AF_INET) 
+	{
 	    return &(((struct sockaddr_in*)sa)->sin_addr);
 	}
 	return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
 
-void EvilIrc::recv () {
+void Evilirc::recv () 
+{
 	memset(&buf, 0, 100);
 	
-	if ((numbytes = ::recv(sockfd, buf, MAXDATASIZE-1, 0)) == -1) {
+	if ((numbytes = ::recv(sockfd, buf, MAXDATASIZE-1, 0)) == -1) 
+	{
 #if(DEBUG)
 		std::cout << "RECV ERROR";
 #endif
 		
 	}
 	std::string strBuf = buf;
-	if(strBuf.substr(0, 4) == "PING") {
+	if(strBuf.substr(0, 4) == "PING") 
+	{
 		pong(buf);
 	}
 
@@ -44,13 +50,16 @@ void EvilIrc::recv () {
 #endif
 }
 
-void EvilIrc::pong(char cPong[]) {
+void Evilirc::pong(char cPong[]) 
+{
 	const char PONG[] = "PONG";
-	for(int i = 0; i < 4; i++){
+	for(int i = 0; i < 4; i++)
+	{
 		cPong[i] = PONG[i];
 	}		
 	
-	if(::send(sockfd, cPong, strlen(cPong), 0) == -1){
+	if(::send(sockfd, cPong, strlen(cPong), 0) == -1)
+	{
 		std::cout << "send Error";
 	}
 #if(DEBUG)
@@ -59,7 +68,8 @@ void EvilIrc::pong(char cPong[]) {
 	return;
 }
 
-void EvilIrc::send(std::string strUserMessage) {
+void Evilirc::send(std::string strUserMessage) 
+{
 	int length = strlen(strUserMessage.c_str()) + 2;	
    	char *cUserMessage = new char[length];
     strncpy(cUserMessage, (char*)strUserMessage.c_str(), ( length - 1 ) );
@@ -70,7 +80,8 @@ void EvilIrc::send(std::string strUserMessage) {
 	std::cout << "Sending: " << cUserMessage << std::endl;
 #endif
 		
-	if(::send(sockfd, cUserMessage, length, 0) == -1){	
+	if(::send(sockfd, cUserMessage, length, 0) == -1)
+	{	
 #if(DEBUG)
 		std::cout << "send Error";
 		exit(1);
@@ -82,17 +93,26 @@ void EvilIrc::send(std::string strUserMessage) {
 
 
 	
-bool EvilIrc::connect() {
+bool Evilirc::connect() 
+{
+	if(connected)
+	{
+		return 0;
+	}
 	int rv;		
-	if((rv = getaddrinfo(HOSTNAME, PORT, &hints, &servinfo)) != 0) {
+	if((rv = getaddrinfo(HOSTNAME, PORT, &hints, &servinfo)) != 0) 
+	{		
 		return -1;
 	}
-	for(p = servinfo; p != NULL; p = p->ai_next) {
-		if((sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1){
+	for(p = servinfo; p != NULL; p = p->ai_next) 
+	{
+		if((sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1)
+		{
 			std::cout << "socket error";
 			continue;
 		}
-		if(::connect(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
+		if(::connect(sockfd, p->ai_addr, p->ai_addrlen) == -1) 
+		{
 			close(sockfd);
 			std::cout << "error connecting";
 			continue;
@@ -100,7 +120,8 @@ bool EvilIrc::connect() {
 		break;
 	}
 	
-	if(p == NULL) {
+	if(p == NULL) 
+	{
 		std::cout << "failed to connect";
 		return 2;
 	}
@@ -108,7 +129,7 @@ bool EvilIrc::connect() {
 	inet_ntop(p->ai_family, get_in_addr((struct sockaddr *)p->ai_addr), s, sizeof s);
 	
 	freeaddrinfo(servinfo);	
-					
+	connected = true;	
 	return 0;		
 }
 /********************
@@ -116,51 +137,57 @@ bool EvilIrc::connect() {
 /*Disconnect the IRC server and socket
 /*
 /********************/
-void EvilIrc::disconnect() {
+void Evilirc::disconnect() 
+{
+	if(!connected)
+	{
+		return;
+	}
 	std::string strQuit = "quit";
 	send(strQuit);
 	close(sockfd);
+	connected = false;
 }
 /********************
 /*
 /*Authenticate with the server
 /*
 /********************/
-void EvilIrc::authenticate() {
+void Evilirc::authenticate()
+{
 	std::string strNickMessage = "NICK "  NICKNAME""; 
 	send(strNickMessage);
-	recv();
-	//std::cout << buf;			
+	recv();			
 }
 /********************
 /*
 /*Tell the server who i am
 /*
 /********************/
-void EvilIrc::user() {
+void Evilirc::user() 
+{
 
 	std::string strUserMessage = "USER "NICKNAME" 0 *: eviltools";
 	send(strUserMessage);
 	recv();
-	//std::cout << buf;
 }
 /********************
 /*
 /*Join the configured channel
 /*
 /********************/
-void EvilIrc::join() {
-
+void Evilirc::join() 
+{
 	std::string strJoinMessage = "JOIN "CHANNEL"";
 	send(strJoinMessage);
-	//std::cout << buf;
 }
 /********************
 /*
 /*Say something in the configured channel
 /*
 /********************/
-void EvilIrc::say(std::string& strMessage) {
+void Evilirc::say(std::string& strMessage) 
+{
 	std::string strSayMessage = "privmsg "CHANNEL" :";
 	strSayMessage.append(strMessage);
 	send(strSayMessage);	
@@ -170,7 +197,7 @@ void EvilIrc::say(std::string& strMessage) {
 /*Idle, look for new messages.
 /*
 /********************/
-void EvilIrc::idle() {
+void Evilirc::idle() {
 	std::cout << "idleLoop" << std::endl;
 	recv();
 	std::cout << "doAction";
@@ -179,9 +206,30 @@ void EvilIrc::idle() {
 /*
 /*Override the assignment operator when given a std::string
 /*When assigned it sends it as a private message to the configured channel
+/*
 /********************/
-std::string& EvilIrc::operator= (std::string& strString) {
+std::string& Evilirc::operator= (std::string& strString) {
 	say(strString);
+}
+/********************
+/*
+/*Kick a user with or without reason
+/*
+/********************/
+void Evilirc::kick(std::string& strUsername) 
+{
+	std::string strKickMessage = "KICK "CHANNEL" ";
+	strKickMessage.append(strUsername);
+	send(strKickMessage);
+}
+
+void Evilirc::kick(std::string& strUsername, std::string& strReason) 
+{
+	std::string strKickMessage = "KICK "CHANNEL" ";
+	strKickMessage.append(strUsername);
+	strKickMessage.append(" :");
+	strKickMessage.append(strReason);
+	send(strKickMessage);
 }
 	
 

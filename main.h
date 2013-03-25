@@ -1,5 +1,9 @@
 #ifndef _MAIN_HEADER
 #define _MAIN_HEADER
+/********************
+**	Evilzone IRC bot
+**	Factionwars 2013
+*********************/
 
 #include <errno.h>
 #include <string.h>
@@ -7,5 +11,7 @@
 #include <stdlib.h>
 
 #include <iostream>
+#include <string>
+#include <cstring>
 
 #endif
