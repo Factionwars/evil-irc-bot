@@ -208,7 +208,8 @@ void Evilirc::idle() {
 /*When assigned it sends it as a private message to the configured channel
 /*
 /********************/
-std::string& Evilirc::operator= (std::string& strString) {
+std::string& Evilirc::operator= (std::string& strString) 
+{
 	say(strString);
 }
 /********************
