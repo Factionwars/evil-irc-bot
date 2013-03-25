@@ -111,17 +111,32 @@ bool EvilIrc::connect() {
 					
 	return 0;		
 }
-
-bool EvilIrc::disconnect() {
+/********************
+/*
+/*Disconnect the IRC server and socket
+/*
+/********************/
+void EvilIrc::disconnect() {
+	std::string strQuit = "quit";
+	send(strQuit);
 	close(sockfd);
 }
-
+/********************
+/*
+/*Authenticate with the server
+/*
+/********************/
 void EvilIrc::authenticate() {
 	std::string strNickMessage = "NICK "  NICKNAME""; 
 	send(strNickMessage);
 	recv();
 	//std::cout << buf;			
 }
+/********************
+/*
+/*Tell the server who i am
+/*
+/********************/
 void EvilIrc::user() {
 
 	std::string strUserMessage = "USER "NICKNAME" 0 *: eviltools";
@@ -129,21 +144,44 @@ void EvilIrc::user() {
 	recv();
 	//std::cout << buf;
 }
+/********************
+/*
+/*Join the configured channel
+/*
+/********************/
 void EvilIrc::join() {
 
 	std::string strJoinMessage = "JOIN "CHANNEL"";
 	send(strJoinMessage);
 	//std::cout << buf;
 }
-void EvilIrc::say(std::string strMessage) {
+/********************
+/*
+/*Say something in the configured channel
+/*
+/********************/
+void EvilIrc::say(std::string& strMessage) {
 	std::string strSayMessage = "privmsg "CHANNEL" :";
 	strSayMessage.append(strMessage);
 	send(strSayMessage);	
 }
+/********************
+/*
+/*Idle, look for new messages.
+/*
+/********************/
 void EvilIrc::idle() {
 	std::cout << "idleLoop" << std::endl;
 	recv();
 	std::cout << "doAction";
+}
+/********************
+/*
+/*Override the assignment operator when given a std::string
+/*When assigned it sends it as a private message to the configured channel
+/********************/
+std::string& EvilIrc::operator= (std::string& strString) {
+	say(strString);
 }
 	
 

@@ -8,16 +8,18 @@
 
 int main() {
 	EvilIrc irc;
-	irc.connect();
+	irc.connect();	
+	
 	irc.authenticate();
 	irc.user();
 	irc.join();
-	irc.say("--Evil IRC Bot Ready for commands-- (looks cool)");
-	irc.say("I like big buts and kulverstukas can not lie.");
-	irc.say("And ande can't deny");
-	irc.say("bluechill likes c*** uhm chickens");
-	irc.say("And i am really in it");
-	while(1){
+	std::string sayString = "hai";
+	irc = sayString;
+	sayString = "Bye";
+	irc = sayString;
+
+	while(1 == 2){
 		irc.idle();
 	}
+	irc.disconnect();
 }

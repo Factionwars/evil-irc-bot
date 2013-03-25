@@ -45,13 +45,14 @@ public:
 	EvilIrc();
 	~EvilIrc();
 	bool connect();
-	bool disconnect();
+	void disconnect();
 	void authenticate();
 	
 	void user();
 	void join();
-	void say(std::string strMessage);
+	void say(std::string& strMessage);
 	void idle();
+	std::string& operator= (std::string& strString);
 };
 
 
