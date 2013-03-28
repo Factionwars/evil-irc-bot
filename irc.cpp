@@ -197,9 +197,10 @@ void Evilirc::say(std::string& strMessage)
 /*Idle, look for new messages.
 /*
 /********************/
-void Evilirc::idle() {
+void Evilirc::idle() 
+{
 	std::cout << "idleLoop" << std::endl;
-	recv();
+	recv();	
 	std::cout << "doAction";
 }
 /********************
@@ -231,6 +232,92 @@ void Evilirc::kick(std::string& strUsername, std::string& strReason)
 	strKickMessage.append(" :");
 	strKickMessage.append(strReason);
 	send(strKickMessage);
+}
+/********************
+/*
+/* Parse a IRC message
+/* 0: Not a valid IRC message or supported
+/* 1: Normal message
+/* 2: Mode change
+/* 3: ! Command
+/*
+/********************/
+int EvilParser::checkMessage(std::string raw)
+{
+	if(raw.substr(0, 1) != ":")
+	{
+		return 0;
+	}
+	int nPos;
+	int nNewPos;
+
+	nPos = raw.find("!");
+	if(nPos == std::string::npos)
+	{
+		return 0;
+	}
+	std::string strNickname = raw.substr(1, nPos - 1);
+
+	m_strNickname = strNickname;
+
+	//Extract the message type (MODE|PRIVMSG)
+
+	nPos = raw.find(" ", nPos);
+	if(nPos == std::string::npos)
+	{
+		return 0;
+	}
+	nPos++;
+
+	nNewPos = raw.find(" ", nPos);
+	if(nNewPos == std::string::npos)
+	{
+		return 0;
+	}
+	std::string strType = raw.substr(nPos, (nNewPos - nPos) );
+
+	if(strType == "MODE")
+	{
+		return 2;
+	}
+	
+	if(strType != "PRIVMSG")
+	{
+		return 0;
+	}
+	//Extract the Channel/user name segment
+	nPos = nNewPos;
+
+	nPos = raw.find(" ", nPos);
+	if(nPos == std::string::npos)
+	{
+		return 0;
+	}
+	nPos++;
+
+	nNewPos = raw.find(" ", nPos);
+	if(nNewPos == std::string::npos)
+	{
+		return 0;
+	}
+	m_strChannel = raw.substr(nPos, (nNewPos - nPos) );
+	
+	//Extract the message
+	nPos = nNewPos;
+
+	nPos = raw.find(":", nPos);
+	if(nPos == std::string::npos)
+	{
+		return 0;
+	}
+	nPos++;
+	if(raw.substr(nPos, 1) != "!")
+	{
+		m_strMessage = raw.substr(nPos);
+		return 1;
+	}
+	
+	return 1;
 }
 	
 

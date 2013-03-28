@@ -12,7 +12,6 @@
 #define CHANNEL "#test"
 #define DEBUG 1
 
-#include <unistd.h>
 #include <netdb.h>
 #include <sys/types.h>
 #include <netinet/in.h>
@@ -27,7 +26,6 @@ char cEndl[2] = {'\n', '\r'};
 
 class Evilirc {
 private: 
-	char buf[MAXDATASIZE];	
 	char s[INET6_ADDRSTRLEN];	
 	
 	int sockfd, numbytes;	
@@ -43,6 +41,8 @@ private:
 	
 	bool connected;
 public:
+	char buf[MAXDATASIZE];	
+
 	Evilirc();
 	~Evilirc();
 	bool connect();
@@ -62,5 +62,12 @@ public:
 	
 };
 
-
+class EvilParser {
+public:
+	std::string m_strNickname;
+	std::string m_strChannel;
+	std::string m_strMessage;
+	std::string m_strModeTarget;
+	int checkMessage(std::string raw);
+};
 #endif

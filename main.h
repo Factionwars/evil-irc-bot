@@ -4,7 +4,7 @@
 **	Evilzone IRC bot
 **	Factionwars 2013
 *********************/
-
+#include <unistd.h>
 #include <errno.h>
 #include <string.h>
 #include <stdio.h>

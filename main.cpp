@@ -10,6 +10,7 @@ int main() {
 	Evilirc irc;
 	irc.connect();	
 	
+
 	irc.authenticate();
 	irc.user();
 	irc.join();
@@ -19,8 +20,24 @@ int main() {
 	irc = strSay;
 	std::string strUsername = "Factionwars";
 	strSay = "Fuck you owner";
-	irc.kick(strUsername, strSay);
+	EvilParser parser;
+	int nParseStatus;
 	while(1){
 		irc.idle();
+		nParseStatus = parser.checkMessage(irc.buf);
+		switch(nParseStatus){
+			case 1:
+				strSay = "Your message was ";
+				strSay.append(parser.m_strMessage);
+				irc = strSay;
+				break;
+			case 0:
+			default:
+				break;
+
+		}
+		if(nParseStatus == 1){			
+
+		}
 	}
 }
