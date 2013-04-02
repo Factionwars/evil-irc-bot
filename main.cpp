@@ -5,39 +5,39 @@
 
 #include "main.h"
 #include "irc.cpp"
+#include "commander.cpp"
 
 int main() {
 	Evilirc irc;
-	irc.connect();	
-	
-
+	irc.connect();		
 	irc.authenticate();
-	irc.user();
 	irc.join();
 	std::string strSay = "hai";
 	irc = strSay;
-	strSay = "Bye";
-	irc = strSay;
-	std::string strUsername = "Factionwars";
-	strSay = "Fuck you owner";
+	std::string strRecv;
 	EvilParser parser;
-	int nParseStatus;
-	while(1){
-		irc.idle();
-		nParseStatus = parser.checkMessage(irc.buf);
-		switch(nParseStatus){
+	bool bRunning = true;
+	while(bRunning){
+		strRecv = irc.idle();
+		std::cout << strRecv << std::endl;
+		EvilResult* parseResult = parser.checkMessage(strRecv);
+		switch(parseResult->resultType){
 			case 1:
 				strSay = "Your message was ";
-				strSay.append(parser.m_strMessage);
+				strSay.append(parseResult->strMessage);
 				irc = strSay;
 				break;
+			case 3:
+				strSay = "You commanded me to ";
+				strSay.append(parseResult->strMessage);
+				irc = strSay;
+				break;
+			case 2:
 			case 0:
 			default:
 				break;
 
 		}
-		if(nParseStatus == 1){			
-
-		}
+		delete parseResult;
 	}
 }

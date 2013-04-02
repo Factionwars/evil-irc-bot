@@ -49,10 +49,9 @@ public:
 	void disconnect();
 	void authenticate();
 	
-	void user();
 	void join();
 	void say(std::string& strMessage);
-	void idle();
+	std::stringt idle();
 
 	std::string& operator= (std::string& strString);
 
@@ -62,12 +61,20 @@ public:
 	
 };
 
+struct EvilResult {
+
+	int resultType;
+	std::string strNickname;
+	std::string strChannel;
+	std::string strMessage;
+	std::string strModeTarget;
+	std::string *strArgv;
+	int nArgc;
+};
+
 class EvilParser {
 public:
-	std::string m_strNickname;
-	std::string m_strChannel;
-	std::string m_strMessage;
-	std::string m_strModeTarget;
-	int checkMessage(std::string raw);
+	EvilResult* checkMessage(std::string raw);
 };
+
 #endif

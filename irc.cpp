@@ -43,11 +43,6 @@ void Evilirc::recv ()
 	{
 		pong(buf);
 	}
-
-	buf[numbytes] = '\0';
-#if(DEBUG)
-	std::cout << buf << std::endl;
-#endif
 }
 
 void Evilirc::pong(char cPong[]) 
@@ -158,15 +153,6 @@ void Evilirc::authenticate()
 	std::string strNickMessage = "NICK "  NICKNAME""; 
 	send(strNickMessage);
 	recv();			
-}
-/********************
-/*
-/*Tell the server who i am
-/*
-/********************/
-void Evilirc::user() 
-{
-
 	std::string strUserMessage = "USER "NICKNAME" 0 *: eviltools";
 	send(strUserMessage);
 	recv();
@@ -197,11 +183,18 @@ void Evilirc::say(std::string& strMessage)
 /*Idle, look for new messages.
 /*
 /********************/
-void Evilirc::idle() 
+std::string Evilirc::idle() 
 {
-	std::cout << "idleLoop" << std::endl;
 	recv();	
-	std::cout << "doAction";
+	std::string raw = buf;
+	int nPos = 0;
+	while( raw.find(std::string("\x0d\x0a"), 0) == std::string::npos )
+	{
+		recv();
+		raw.append(buf);
+	}
+	return raw;
+	
 }
 /********************
 /*
@@ -242,11 +235,13 @@ void Evilirc::kick(std::string& strUsername, std::string& strReason)
 /* 3: ! Command
 /*
 /********************/
-int EvilParser::checkMessage(std::string raw)
+EvilResult* EvilParser::checkMessage(std::string raw)
 {
+	EvilResult *result = new EvilResult;
 	if(raw.substr(0, 1) != ":")
 	{
-		return 0;
+		result->resultType = 0;
+		return result;
 	}
 	int nPos;
 	int nNewPos;
@@ -254,36 +249,39 @@ int EvilParser::checkMessage(std::string raw)
 	nPos = raw.find("!");
 	if(nPos == std::string::npos)
 	{
-		return 0;
+		result->resultType = 0;
+		return result;
 	}
-	std::string strNickname = raw.substr(1, nPos - 1);
-
-	m_strNickname = strNickname;
+	result->strNickname = raw.substr(1, nPos - 1);
 
 	//Extract the message type (MODE|PRIVMSG)
 
 	nPos = raw.find(" ", nPos);
 	if(nPos == std::string::npos)
 	{
-		return 0;
+		result->resultType = 0;
+		return result;
 	}
 	nPos++;
 
 	nNewPos = raw.find(" ", nPos);
 	if(nNewPos == std::string::npos)
 	{
-		return 0;
+		result->resultType = 0;
+		return result;
 	}
 	std::string strType = raw.substr(nPos, (nNewPos - nPos) );
 
 	if(strType == "MODE")
 	{
-		return 2;
+		result->resultType = 2;
+		return result;
 	}
 	
 	if(strType != "PRIVMSG")
 	{
-		return 0;
+		result->resultType = 0;
+		return result;
 	}
 	//Extract the Channel/user name segment
 	nPos = nNewPos;
@@ -291,16 +289,18 @@ int EvilParser::checkMessage(std::string raw)
 	nPos = raw.find(" ", nPos);
 	if(nPos == std::string::npos)
 	{
-		return 0;
+		result->resultType = 0;
+		return result;
 	}
 	nPos++;
 
 	nNewPos = raw.find(" ", nPos);
 	if(nNewPos == std::string::npos)
 	{
-		return 0;
+		result->resultType = 0;
+		return result;
 	}
-	m_strChannel = raw.substr(nPos, (nNewPos - nPos) );
+	result->strChannel = raw.substr(nPos, (nNewPos - nPos) );
 	
 	//Extract the message
 	nPos = nNewPos;
@@ -308,16 +308,62 @@ int EvilParser::checkMessage(std::string raw)
 	nPos = raw.find(":", nPos);
 	if(nPos == std::string::npos)
 	{
-		return 0;
+		result->resultType = 0;
+		return result;
 	}
 	nPos++;
 	if(raw.substr(nPos, 1) != "!")
 	{
-		m_strMessage = raw.substr(nPos);
-		return 1;
+		result->strMessage = raw.substr(nPos);
+		result->resultType = 1;
+		return result;
 	}
+	nPos++;
 	
-	return 1;
+
+	nNewPos = raw.find(" ", nPos);
+	if(nNewPos == std::string::npos)
+	{
+		result->strMessage = raw.substr(nPos);
+		result->resultType = 3;
+		return result;
+	}
+	result->strMessage = raw.substr(nPos, (nNewPos - nPos));
+	//Extract the arguments if exists
+	//And assign a basic 4 arguments long strArray
+	//If there are more arguments we will extend it.
+	int nIndex = 0;
+	int nArgvLength = 4;
+	result->nArgc = 0;
+	result->strArgv = new std::string[nArgvLength];
+	std::string *strTemp;
+
+	while ( (nNewPos = raw.find(" ", nPos)) != std::string::npos ) 
+	{
+		if(nIndex == 20)
+		{
+			break;
+		}
+		if(nIndex > (nArgvLength - 1))
+		{	
+			//resize the array
+			strTemp = new std::string[nArgvLength + 2];
+			std::copy(result->strArgv, result->strArgv + nArgvLength, strTemp);
+			nArgvLength += 2;
+			result->strArgv = strTemp;
+			delete[] strTemp;
+			strTemp = 0;
+		}
+		result->strArgv[nIndex] = raw.substr(nPos, (nNewPos - nPos));
+				
+		nNewPos++;
+		result->nArgc++;
+		nIndex++;
+		nPos = nNewPos;
+		
+ 	}
+	result->resultType = 3;
+	return result;
 }
 	
 
